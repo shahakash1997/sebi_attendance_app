@@ -1,0 +1,7 @@
+{
+  "name": "sebi_attendance",
+  "displayName": "sebi_attendance",
+  "plugins": [
+    "expo-build-properties"
+  ]
+}
