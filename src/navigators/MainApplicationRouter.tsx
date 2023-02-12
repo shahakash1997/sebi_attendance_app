@@ -6,6 +6,8 @@ import NotificationsScreen from '../screens/NotificationsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+
 
 const Tab = createBottomTabNavigator();
 export const MainApplicationRouter = () => {
@@ -31,7 +33,7 @@ export const MainApplicationRouter = () => {
         tabBarActiveTintColor: 'red',
         tabBarInactiveTintColor: 'gray',
       })}>
-      <Tab.Screen name={Routes.AttendanceScreen} component={AttendanceScreen}/>
+      <Tab.Screen name={Routes.AttendanceScreen} component={AttendanceScreen} />
       <Tab.Screen
         name={Routes.AttendanceLogsScreen}
         component={AttendanceLogsScreen}
@@ -40,7 +42,16 @@ export const MainApplicationRouter = () => {
         name={Routes.NotificationsScreen}
         component={NotificationsScreen}
       />
-      <Tab.Screen name={Routes.ProfileScreen} component={ProfileScreen} />
+      <Tab.Screen
+        name={Routes.ProfileScreen}
+        component={ProfileScreen}
+        options={{
+          tabBarLabel: 'Profile',
+          tabBarIcon: ({color, size}) => (
+            <MaterialCommunityIcons name="account" color={color} size={size} />
+          ),
+        }}
+      />
     </Tab.Navigator>
   );
 };

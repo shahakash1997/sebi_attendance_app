@@ -164,7 +164,7 @@ const SnackbarCustom = ({
 const styles = StyleSheet.create({
   wrapper: {
     position: 'absolute',
-    bottom: 110,
+    bottom: 10,
     width: '100%',
   },
   container: {

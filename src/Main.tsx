@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { MainApplicationRouter } from "./navigators/MainApplicationRouter";
-import { LoginRouter } from "./navigators/LoginRouter";
-import SplashScreen from "./screens/SplashScreen";
-import { useGlobalSessionState } from "./cache/AppState";
-import ProgressDialog from "./components/widgets/ProgressDialog";
+import React, {useEffect, useState} from 'react';
+import {MainApplicationRouter} from './navigators/MainApplicationRouter';
+import {LoginRouter} from './navigators/LoginRouter';
+import SplashScreen from './screens/SplashScreen';
+import {useGlobalSessionState} from './cache/AppState';
+import ProgressDialog from './components/widgets/ProgressDialog';
 
 import {
   IBMPlexSans_100Thin,
@@ -21,7 +21,7 @@ import {
   IBMPlexSans_700Bold,
   IBMPlexSans_700Bold_Italic,
   useFonts,
-} from "@expo-google-fonts/ibm-plex-sans";
+} from '@expo-google-fonts/ibm-plex-sans';
 //todo load all app components and initialize firebase and all
 export const Main = () => {
   let [fontsLoaded] = useFonts({
@@ -51,7 +51,7 @@ export const Main = () => {
   }, [isLoading, sessionState]);
 
   if (!fontsLoaded) {
-    return <ProgressDialog visible={true} label={"Please wait..."} />;
+    return <ProgressDialog visible={true} label={'Please wait...'} />;
   } else if (isLoading) {
     return <SplashScreen />;
   } else {

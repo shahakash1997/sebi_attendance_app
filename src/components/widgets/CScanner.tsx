@@ -1,10 +1,11 @@
 import React, {memo, useEffect, useState} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import {Camera, CameraType} from 'expo-camera';
-import {Title} from 'react-native-paper';
+import {Button, Title} from 'react-native-paper';
 import {BlurView} from 'expo-blur';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {Fonts} from '../../styles/CommonStyles';
+import {showToast} from './Toaster';
 
 function Hint({children}: {children: string}) {
   return (
@@ -13,23 +14,28 @@ function Hint({children}: {children: string}) {
     </BlurView>
   );
 }
-const CScanner = (props: CScannerProps) => {
-  const [isVisible, setVisible] = useState(true);
+const CScanner = () => {
   const {bottom} = useSafeAreaInsets();
-
   const [type, setType] = useState(CameraType.back);
   const [permission, requestPermission] = Camera.useCameraPermissions();
 
+  function toggleCameraType() {
+    console.log('testing 1');
+    setType(current =>
+      current === CameraType.back ? CameraType.front : CameraType.back,
+    );
+  }
+
   useEffect(() => {
     (async () => {
-      if (!permission || !permission.granted){
+      if (!permission || !permission.granted) {
         const response = await requestPermission();
-        if (response.granted)
+        if (!response.granted) {
+          showToast('Please provide Camera Permissions!');
+        }
       }
-      let response = await checkCameraPermissionUtil();
-      setHasPermission(response);
     })();
-  }, []);
+  }, [permission, requestPermission]);
 
   if (!permission || !permission.granted) {
     return (
@@ -45,21 +51,26 @@ const CScanner = (props: CScannerProps) => {
   }
   return (
     <View style={styles.container}>
-      {isVisible ? <Camera style={StyleSheet.absoluteFill} /> : null}
-      <View style={[styles.header, {bottom: 16 + bottom}]}>
-        <Hint>{'Punch In'}</Hint>
-      </View>
+      <Camera type={CameraType.front} style={StyleSheet.absoluteFill} />
+      <BlurView
+        intensity={50}
+        tint="dark"
+        style={[styles.header, {bottom: bottom}, {padding: 12}]}>
+        <Button
+          textColor={'black'}
+          buttonColor={'rgb(33,243,206)'}
+          style={styles.punchButton}
+          mode="contained"
+          onPress={() => {}}>
+          PUNCH IN/OUT
+        </Button>
+      </BlurView>
     </View>
   );
 };
 
 // exporting Scanner as Pure Component
 export default memo(CScanner);
-
-export interface CScannerProps {
-  barCodeTypes: any[];
-  onScanned: (value: string) => void;
-}
 
 const styles = StyleSheet.create({
   container: {
@@ -89,5 +100,12 @@ const styles = StyleSheet.create({
     right: 0,
     alignItems: 'center',
     fontFamily: Fonts.IBMPlexSans_600SemiBold,
+  },
+  punchButton: {
+    color: 'black',
+    borderRadius: 0,
+    width: '100%',
+    marginStart: 20,
+    marginEnd: 20,
   },
 });
