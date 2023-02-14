@@ -1,9 +1,10 @@
 import {hookstate, useHookstate} from '@hookstate/core';
+import {LoginResponse} from '../models/ApiModels';
 
 export interface UserSession {
   isLoggedIn: boolean;
   token: string | null;
-  user: object | null;
+  user: LoginResponse | null;
 }
 
 const initialGlobalState = hookstate({

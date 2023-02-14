@@ -31,7 +31,7 @@ export function getHeaders() {
 }
 
 export function getDeviceInfo(): DeviceConfig {
-  const devInfo =  {
+  const devInfo = {
     brand: Device.brand,
     deviceName: Device.deviceName,
     designName: Device.designName,
@@ -50,6 +50,19 @@ export function getDeviceInfo(): DeviceConfig {
   };
   console.log(devInfo);
   return devInfo;
+}
+
+/**
+ * time is in seconds
+ * @param time
+ */
+
+export async function timeDelay(time: number = 1000) {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve(true);
+    }, time * 1000);
+  });
 }
 
 //todo Add device Info and auth token etc
