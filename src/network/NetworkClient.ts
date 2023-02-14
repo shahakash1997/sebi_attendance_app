@@ -6,8 +6,9 @@ export default class NetworkClient extends AxiosClient {
     super(baseURL);
   }
 
-  public async requestGet(endpoint: string) {
+  public async requestGet(endpoint: string, params: any) {
     return this.instance.get(endpoint, {
+      params: params,
       headers: getHeaders(),
     });
   }

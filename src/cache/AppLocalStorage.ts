@@ -1,5 +1,9 @@
-import Storage from "./Storage";
+import Storage from './Storage';
 
+export const CACHE_KEYS = {
+  USER_INFO: 'USER_INFO',
+  LAST_PUNCH_IN: 'LAST_PUNCH_IN',
+};
 export default class AppLocalStorage {
   private storage: Storage = Storage.getInstance();
   private static instance: AppLocalStorage;
@@ -10,9 +14,6 @@ export default class AppLocalStorage {
     }
     return AppLocalStorage.instance;
   }
-  public static KEYS = {
-    'USER_INFO':'USER_INFO'
-  };
   public async setObjectInCache(keyName: string, obj: any) {
     await this.storage.setObject(keyName, obj);
   }
@@ -25,8 +26,11 @@ export default class AppLocalStorage {
   public async getKeyFromCache(keyName: string): Promise<string | null> {
     try {
       let keyValue = await this.storage.getItem(keyName);
-      if (keyValue != null) return keyValue;
-      else return null;
+      if (keyValue != null) {
+        return keyValue;
+      } else {
+        return null;
+      }
     } catch (error: any) {
       return null;
     }

@@ -22,7 +22,12 @@ import {
   IBMPlexSans_700Bold_Italic,
   useFonts,
 } from '@expo-google-fonts/ibm-plex-sans';
+import AppLocalStorage, {CACHE_KEYS} from './cache/AppLocalStorage';
+import {LoginResponse} from './models/ApiModels';
+import {isTokenExpired} from './utils/authUtils';
 //todo load all app components and initialize firebase and all
+
+const cache = AppLocalStorage.getInstance();
 export const Main = () => {
   let [fontsLoaded] = useFonts({
     IBMPlexSans_400Regular,
@@ -44,10 +49,28 @@ export const Main = () => {
   const sessionState = useGlobalSessionState();
 
   useEffect(() => {
-    console.log(sessionState.getUserSession().isLoggedIn);
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000);
+    (async () => {
+      try {
+        const employeeData = await cache.getObjectFromCache(
+          CACHE_KEYS.USER_INFO,
+        );
+        if (employeeData) {
+          const data = employeeData as LoginResponse;
+          if (!isTokenExpired(data.authToken)) {
+            sessionState.setUserSession({
+              isLoggedIn: true,
+              token: data.authToken,
+              user: data,
+            });
+            setLoading(false);
+          }
+        }
+        setLoading(false);
+      } catch (error: any) {
+        console.log(error.message);
+        setLoading(false);
+      }
+    })();
   }, [isLoading, sessionState]);
 
   if (!fontsLoaded) {

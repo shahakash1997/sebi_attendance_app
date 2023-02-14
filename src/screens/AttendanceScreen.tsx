@@ -1,17 +1,102 @@
 import * as React from 'react';
-import {Surface, Text} from 'react-native-paper';
+import {useState} from 'react';
+import {Divider, Surface, Text} from 'react-native-paper';
 import {StyleSheet, View} from 'react-native';
 import {CommonStyles} from '../styles/CommonStyles';
 import CScanner from '../components/widgets/CScanner';
+import SnackbarCustom, {
+  SnackBarType,
+} from '../components/widgets/SnackBarCustom';
+import AttendanceService from '../services/AttendanceService';
+import AppLocalStorage, {CACHE_KEYS} from '../cache/AppLocalStorage';
+import {AttendanceType, LoginResponse} from '../models/ApiModels';
+import LocationManager from '../manager/LocationManager';
+import {getDeviceInfo} from '../utils/utils';
+import ProgressDialog from '../components/widgets/ProgressDialog';
+import {
+  MOCK_ERROR_MESSAGE,
+  NOT_AT_OFFICE_LOCATION,
+} from '../constants/constants';
+import {checkLocation, checkTime} from '../utils/attendanceUtils';
 
+const attendanceService = new AttendanceService();
+const cache = AppLocalStorage.getInstance();
+const locationManager = LocationManager.getInstance();
 const AttendanceScreen = () => {
+  const [snackBar, showSnackBar] = useState(false);
+  const [lastPunchData, setLastPunchData] = useState(null);
+  const [snackMessage, setSnackMessage] = useState('');
+  const [snackMessageType, setSnackMessageType] = useState<SnackBarType>(
+    SnackBarType.SUCCESS,
+  );
+  const [mLoading, setLoading] = useState(false);
+
+  const showSnackBarView = (
+    visible: boolean,
+    message: string,
+    type: SnackBarType,
+  ) => {
+    showSnackBar(visible);
+    setSnackMessage(message);
+    setSnackMessageType(type);
+  };
+
   return (
     <View style={CommonStyles.mainContainer}>
+      <ProgressDialog visible={mLoading} label={'Marking Attendance'} />
       <Surface style={styles.surface} elevation={4}>
         <Text> {new Date().toDateString()}</Text>
       </Surface>
+      <Divider
+        bold={true}
+        style={{backgroundColor: 'rgb(33,243,206)', padding: 2}}
+      />
       <View style={{flex: 1}}>
-        <CScanner />
+        <CScanner
+          setLoading={setLoading}
+          showSnackBar={showSnackBarView}
+          onPunchIn={async image => {
+            console.log(image);
+            const cLocation = await locationManager.getCurrentPositionAsync();
+            if (cLocation.mocked) {
+              showSnackBarView(true, MOCK_ERROR_MESSAGE, SnackBarType.FAILURE);
+              return;
+            }
+            if (!checkLocation(cLocation)) {
+              showSnackBarView(
+                true,
+                NOT_AT_OFFICE_LOCATION,
+                SnackBarType.FAILURE,
+              );
+              return;
+            }
+            if (checkTime()) {
+              showSnackBarView(
+                true,
+                'Cannot Punch in at this time!',
+                SnackBarType.FAILURE,
+              );
+              return;
+            }
+            const employeeData = (await cache.getObjectFromCache(
+              CACHE_KEYS.USER_INFO,
+            )) as LoginResponse;
+            await attendanceService.punchAttendance({
+              timestamp: new Date().valueOf(),
+              employeeId: employeeData.employeeId,
+              employeeName: employeeData.name,
+              userToken: '',
+              userLocation: {
+                latitude: cLocation.coords.latitude,
+                longitude: cLocation.coords.longitude,
+                timestamp: cLocation.timestamp,
+                accuracy: cLocation.coords.accuracy,
+              },
+              type: AttendanceType.PUNCH_IN,
+              deviceConfig: getDeviceInfo(),
+            });
+          }}
+        />
       </View>
 
       <Surface
@@ -19,15 +104,16 @@ const AttendanceScreen = () => {
         elevation={4}>
         <Text style={{color: 'white'}}>{new Date().toDateString()}</Text>
       </Surface>
-      <Surface
-        style={[
-          CommonStyles.bottom,
-          styles.surface,
-          {backgroundColor: 'rgb(142,220,250)'},
-        ]}
-        elevation={4}>
-        <Text style={{color: 'black'}}>{'Some warning text'}</Text>
-      </Surface>
+      <SnackbarCustom
+        visible={snackBar}
+        message={snackMessage}
+        type={snackMessageType}
+        onDismiss={() => {
+          showSnackBar(false);
+          setSnackMessageType(SnackBarType.SUCCESS);
+          setSnackMessage('');
+        }}
+      />
     </View>
   );
 };

@@ -6,6 +6,8 @@ export enum SEBIUserRoles {
 export interface Location {
   latitude: number;
   longitude: number;
+  accuracy : number | null;
+  timestamp : number;
 }
 
 /**
@@ -78,11 +80,17 @@ export enum InOutType {
   LOCATION_OUT = 'LOCATION_OUT',
 }
 export interface PunchInOutRequest {
-  employeeId: number;
-  userToken: string;
+  employeeId: string;
+  employeeName: string;
+  userToken?: string; //use some unique device token //todo
   timestamp: number;
   userLocation: Location;
   type: AttendanceType;
+  deviceConfig: DeviceConfig;
+}
+
+export interface LastPunchData {
+  //todo
 }
 
 export interface PunchInOutResponse {
