@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {useEffect, useState} from 'react';
+import {useCallback, useState} from 'react';
 import {Divider, Surface, Text} from 'react-native-paper';
 import {StyleSheet, View} from 'react-native';
 import {CommonStyles} from '../styles/CommonStyles';
@@ -19,12 +19,14 @@ import {
 } from '../constants/constants';
 import {checkLocation, checkTime} from '../utils/attendanceUtils';
 import {useIsFocused} from '@react-navigation/native';
+import {useGlobalSessionState} from '../cache/AppState';
 
 const attendanceService = new AttendanceService();
 const cache = AppLocalStorage.getInstance();
 const locationManager = LocationManager.getInstance();
 const AttendanceScreen = () => {
   const isFocused = useIsFocused();
+  const sessionState = useGlobalSessionState();
   const [snackBar, showSnackBar] = useState(false);
   const [lastPunchData, setLastPunchData] = useState(null);
   const [snackMessage, setSnackMessage] = useState('');
@@ -32,20 +34,18 @@ const AttendanceScreen = () => {
     SnackBarType.SUCCESS,
   );
   const [mLoading, setLoading] = useState(false);
-
-  const showSnackBarView = (
-    visible: boolean,
-    message: string,
-    type: SnackBarType,
-  ) => {
-    showSnackBar(visible);
-    setSnackMessage(message);
-    setSnackMessageType(type);
-  };
+  const showSnackBarView = useCallback(
+    (visible: boolean, message: string, type: SnackBarType) => {
+      showSnackBar(visible);
+      setSnackMessage(message);
+      setSnackMessageType(type);
+    },
+    [],
+  );
 
   return (
     <View style={CommonStyles.mainContainer}>
-      <ProgressDialog visible={mLoading} label={'Marking Attendance'} />
+      <ProgressDialog visible={mLoading} label={'Please wait'} />
       <Surface style={styles.surface} elevation={4}>
         <Text> {new Date().toDateString()}</Text>
       </Surface>
@@ -59,13 +59,13 @@ const AttendanceScreen = () => {
           setLoading={setLoading}
           showSnackBar={showSnackBarView}
           onPunchIn={async image => {
-            console.log(image);
+            console.log('Attendance Mark Request!' + image.length);
             const cLocation = await locationManager.getCurrentPositionAsync();
             if (cLocation.mocked) {
               showSnackBarView(true, MOCK_ERROR_MESSAGE, SnackBarType.FAILURE);
               return;
             }
-            if (!checkLocation(cLocation)) {
+            if (!checkLocation(cLocation, sessionState.getUserSession())) {
               showSnackBarView(
                 true,
                 NOT_AT_OFFICE_LOCATION,
@@ -73,7 +73,7 @@ const AttendanceScreen = () => {
               );
               return;
             }
-            if (checkTime()) {
+            if (!checkTime()) {
               showSnackBarView(
                 true,
                 'Cannot Punch in at this time!',

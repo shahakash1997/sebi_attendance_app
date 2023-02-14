@@ -7,6 +7,7 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {Fonts} from '../../styles/CommonStyles';
 import {showToast} from './Toaster';
 import {SnackBarType} from './SnackBarCustom';
+import * as FaceDetector from 'expo-face-detector';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function Hint({children}: {children: string}) {
@@ -28,17 +29,18 @@ const CScanner = (props: CameraProps) => {
   const {bottom} = useSafeAreaInsets();
   const [type, setType] = useState(CameraType.back);
   const [permission, requestPermission] = Camera.useCameraPermissions();
-  const [facesDetected, setFacesDetected] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
   const cameraRef = useRef<Camera>();
 
   const getCameraPicture = async () => {
     if (cameraRef.current) {
-      const result = await cameraRef.current.takePictureAsync();
-      console.log(result);
-      return result;
+      return await cameraRef.current.takePictureAsync({
+        base64: true,
+        quality: 0.2,
+      });
     } else {
       console.log('CAMERA REF NULL');
+      return null;
     }
   };
 
@@ -57,7 +59,7 @@ const CScanner = (props: CameraProps) => {
         }
       }
     })();
-  }, [permission, requestPermission]);
+  }, [cameraReady, permission, props, requestPermission]);
 
   if (!permission || !permission.granted) {
     return (
@@ -83,12 +85,6 @@ const CScanner = (props: CameraProps) => {
           }}
           type={type}
           style={StyleSheet.absoluteFill}
-          onFacesDetected={result => {
-            console.log(result);
-            if (result.faces.length >= 1) {
-              setFacesDetected(true);
-            }
-          }}
         />
       )}
       <FAB
@@ -109,25 +105,47 @@ const CScanner = (props: CameraProps) => {
           style={styles.punchButton}
           mode="contained"
           onPress={async () => {
+            props.setLoading(true);
             if (!cameraReady) {
               props.showSnackBar(
                 true,
                 'Please wait! Camera not ready',
                 SnackBarType.FAILURE,
               );
+              props.setLoading(false);
               return;
             }
-            if (!facesDetected) {
+            const cameraPicture = await getCameraPicture();
+            if (!cameraPicture) {
+              props.showSnackBar(
+                true,
+                'Unable to take picture! Please try again!',
+                SnackBarType.FAILURE,
+              );
+              props.setLoading(false);
+              return;
+            }
+            const facesDetected = await FaceDetector.detectFacesAsync(
+              cameraPicture.uri,
+              {
+                mode: FaceDetector.FaceDetectorMode.accurate,
+                detectLandmarks: FaceDetector.FaceDetectorLandmarks.all,
+                runClassifications:
+                  FaceDetector.FaceDetectorClassifications.all,
+                minDetectionInterval: 400,
+                tracking: true,
+              },
+            );
+            if (facesDetected.faces.length < 1) {
               props.showSnackBar(
                 true,
                 'No Face Detected! Please take proper selfie',
                 SnackBarType.FAILURE,
               );
+              props.setLoading(false);
               return;
             }
-            props.setLoading(true);
-            const res = await getCameraPicture();
-            const base64Image = res?.base64 || 'Unknown issue';
+            const base64Image = cameraPicture?.base64 || 'Unknown issue';
             await props.onPunchIn(base64Image);
             props.setLoading(false);
           }}>
