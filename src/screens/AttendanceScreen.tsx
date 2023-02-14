@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import {Divider, Surface, Text} from 'react-native-paper';
 import {StyleSheet, View} from 'react-native';
 import {CommonStyles} from '../styles/CommonStyles';
@@ -18,11 +18,13 @@ import {
   NOT_AT_OFFICE_LOCATION,
 } from '../constants/constants';
 import {checkLocation, checkTime} from '../utils/attendanceUtils';
+import {useIsFocused} from '@react-navigation/native';
 
 const attendanceService = new AttendanceService();
 const cache = AppLocalStorage.getInstance();
 const locationManager = LocationManager.getInstance();
 const AttendanceScreen = () => {
+  const isFocused = useIsFocused();
   const [snackBar, showSnackBar] = useState(false);
   const [lastPunchData, setLastPunchData] = useState(null);
   const [snackMessage, setSnackMessage] = useState('');
@@ -53,6 +55,7 @@ const AttendanceScreen = () => {
       />
       <View style={{flex: 1}}>
         <CScanner
+          cameraVisible={isFocused}
           setLoading={setLoading}
           showSnackBar={showSnackBarView}
           onPunchIn={async image => {
@@ -98,7 +101,6 @@ const AttendanceScreen = () => {
           }}
         />
       </View>
-
       <Surface
         style={[CommonStyles.bottom, styles.surface, {backgroundColor: 'blue'}]}
         elevation={4}>

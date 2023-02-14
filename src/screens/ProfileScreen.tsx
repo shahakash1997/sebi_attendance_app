@@ -1,11 +1,11 @@
 import * as React from 'react';
-import { useEffect, useRef, useState } from "react";
-import {Button, Surface} from 'react-native-paper';
+import {useEffect, useRef, useState} from 'react';
+import {Button, Surface, Text} from 'react-native-paper';
 import {StyleSheet, View} from 'react-native';
 import {LoginResponse} from '../models/ApiModels';
 import {useGlobalSessionState} from '../cache/AppState';
 import AppLocalStorage, {CACHE_KEYS} from '../cache/AppLocalStorage';
-import { timeDelay } from "../utils/utils";
+import {timeDelay} from '../utils/utils';
 
 const cache = AppLocalStorage.getInstance();
 const ProfileScreen = () => {
@@ -17,13 +17,16 @@ const ProfileScreen = () => {
     if (data) {
       const empData = data as LoginResponse;
       employeeRef.current = empData;
-      console.log(employeeRef.current);
     }
   }, [sessionState]);
 
   return (
     <View style={{flex: 1}}>
       <Surface style={styles.surface} elevation={4}>
+        <Text>{employeeRef.current?.name}</Text>
+        <Text>{employeeRef.current?.employeeId}</Text>
+        <Text>{employeeRef.current?.officeAddress}</Text>
+        <Text>{employeeRef.current?.phone}</Text>
         <View>
           <Button
             loading={loading}
@@ -32,14 +35,13 @@ const ProfileScreen = () => {
             onPress={async () => {
               setLoading(true);
               await cache.clearKeys([CACHE_KEYS.USER_INFO]);
-              await timeDelay(3);
+              await timeDelay(1);
               sessionState.setUserSession({
                 isLoggedIn: false,
                 token: null,
                 user: null,
               });
               setLoading(false);
-
             }}>
             Logout
           </Button>

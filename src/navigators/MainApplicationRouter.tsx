@@ -11,6 +11,7 @@ const Tab = createBottomTabNavigator();
 export const MainApplicationRouter = () => {
   return (
     <Tab.Navigator
+      detachInactiveScreens={true}
       initialRouteName={Routes.AttendanceScreen}
       screenOptions={({route}) => ({
         tabBarIcon: ({focused, color, size}) => {

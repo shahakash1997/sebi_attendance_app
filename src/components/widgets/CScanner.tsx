@@ -21,6 +21,7 @@ export interface CameraProps {
   onPunchIn: (image: string) => void;
   showSnackBar: (visible: boolean, message: string, type: SnackBarType) => void;
   setLoading: (loading: boolean) => void;
+  cameraVisible: boolean;
 }
 
 const CScanner = (props: CameraProps) => {
@@ -72,22 +73,24 @@ const CScanner = (props: CameraProps) => {
   }
   return (
     <View style={styles.container}>
-      <Camera
-        autoFocus={true}
-        // @ts-ignore
-        ref={cameraRef}
-        onCameraReady={() => {
-          setCameraReady(true);
-        }}
-        type={type}
-        style={StyleSheet.absoluteFill}
-        onFacesDetected={result => {
-          console.log(result);
-          if (result.faces.length >= 1) {
-            setFacesDetected(true);
-          }
-        }}
-      />
+      {props.cameraVisible && (
+        <Camera
+          autoFocus={true}
+          // @ts-ignore
+          ref={cameraRef}
+          onCameraReady={() => {
+            setCameraReady(true);
+          }}
+          type={type}
+          style={StyleSheet.absoluteFill}
+          onFacesDetected={result => {
+            console.log(result);
+            if (result.faces.length >= 1) {
+              setFacesDetected(true);
+            }
+          }}
+        />
+      )}
       <FAB
         size={'small'}
         icon="orbit-variant"

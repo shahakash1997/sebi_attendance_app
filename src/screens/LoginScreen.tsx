@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
   },
   tinyLogoHeader: {
     marginBottom: 20,
-    height: 45,
+    height: 40,
   },
   loginBtn: {
     borderRadius: 0,
