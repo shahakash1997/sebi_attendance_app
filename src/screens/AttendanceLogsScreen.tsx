@@ -1,16 +1,29 @@
 import * as React from 'react';
 import {useEffect, useState} from 'react';
-import {List, Text} from 'react-native-paper';
+import {Card, List, Surface, Text} from 'react-native-paper';
 import AttendanceService from '../services/AttendanceService';
 import AppLocalStorage, {CACHE_KEYS} from '../cache/AppLocalStorage';
 import {LoginResponse, PunchInOutRequest} from '../models/ApiModels';
-import {View} from 'react-native';
+import {FlatList, StyleSheet, View} from 'react-native';
+import {CommonStyles} from '../styles/CommonStyles';
 
 const attendanceService = new AttendanceService();
 const cache = AppLocalStorage.getInstance();
+
+const ListItem = ({lineItem}: {lineItem: PunchInOutRequest}) => (
+  <Card>
+    <Card.Title
+      title={new Date(lineItem.timestamp).toLocaleTimeString()}
+      subtitle={lineItem.type}
+    />
+  </Card>
+);
+
+const renderItem = ({item}: {item: PunchInOutRequest}) => (
+  <ListItem lineItem={item} />
+);
+
 const AttendanceLogsScreen = () => {
-  const [expanded, setExpanded] = React.useState(true);
-  const handlePress = () => setExpanded(!expanded);
   const [attendanceLogs, setAttendanceLogs] = useState<
     Map<string, PunchInOutRequest[]>
   >([]);
@@ -34,7 +47,6 @@ const AttendanceLogsScreen = () => {
           mapLogs.set(key, [att]);
         }
       }
-      console.log(mapLogs.size);
       setAttendanceLogs(mapLogs);
     })();
   }, []);
@@ -42,15 +54,18 @@ const AttendanceLogsScreen = () => {
     <View style={{flex: 1}}>
       {Array.from(attendanceLogs).map(([key, value]) => {
         return (
-          <List.Accordion
+          <Surface
             key={key}
-            title={key}
-            left={props => <List.Icon {...props} icon="calendar-range" />}>
-            {attendanceLogs.get(key)?.map((tt, index) => {
-              return (<List.Item key={index.toString()} title="First item" />
-              );
-            })}
-          </List.Accordion>
+            elevation={4}>
+            <Text style={{color: 'white', textAlign: 'center', padding: 10}}>
+              {key}
+            </Text>
+            <FlatList
+              data={attendanceLogs.get(key)}
+              renderItem={renderItem}
+              keyExtractor={item => item.timestamp.toString()}
+            />
+          </Surface>
         );
       })}
     </View>
@@ -58,3 +73,20 @@ const AttendanceLogsScreen = () => {
 };
 
 export default AttendanceLogsScreen;
+const styles = StyleSheet.create({
+  item: {
+    backgroundColor: '#f9c2ff',
+    padding: 20,
+    marginVertical: 8,
+    marginHorizontal: 16,
+  },
+  title: {
+    fontSize: 32,
+  },
+  surface: {
+    padding: 8,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
