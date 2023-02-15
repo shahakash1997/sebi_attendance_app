@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {useCallback, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {Divider, Surface, Text} from 'react-native-paper';
 import {StyleSheet, View} from 'react-native';
 import {CommonStyles} from '../styles/CommonStyles';
@@ -17,7 +17,7 @@ import {
   MOCK_ERROR_MESSAGE,
   NOT_AT_OFFICE_LOCATION,
 } from '../constants/constants';
-import {checkLocation, checkTime} from '../utils/attendanceUtils';
+import {checkTime, checkUserDistanceFromOffice} from '../utils/attendanceUtils';
 import {useIsFocused} from '@react-navigation/native';
 import {useGlobalSessionState} from '../cache/AppState';
 
@@ -33,6 +33,7 @@ const AttendanceScreen = () => {
   const [snackMessageType, setSnackMessageType] = useState<SnackBarType>(
     SnackBarType.SUCCESS,
   );
+  const [distance, setDistance] = useState(-1);
   const [mLoading, setLoading] = useState(false);
   const showSnackBarView = useCallback(
     (visible: boolean, message: string, type: SnackBarType) => {
@@ -42,6 +43,20 @@ const AttendanceScreen = () => {
     },
     [],
   );
+  useEffect(() => {
+    const timeFunction = setTimeout(async () => {
+      const cl = await locationManager.getCurrentPositionAsync();
+      const dt = await checkUserDistanceFromOffice(
+        cl,
+        sessionState.getUserSession(),
+      );
+      setDistance(Math.floor(dt));
+    }, 400);
+
+    return () => {
+      clearTimeout(timeFunction);
+    };
+  }, [distance, sessionState]);
 
   return (
     <View style={CommonStyles.mainContainer}>
@@ -59,27 +74,24 @@ const AttendanceScreen = () => {
           setLoading={setLoading}
           showSnackBar={showSnackBarView}
           onPunchIn={async image => {
-            console.log('Attendance Mark Request!' + image.length);
+            console.log(image.length);
+            if (!sessionState.getUserSession()) {
+              throw new Error('No Employee found! Please wait');
+            }
             const cLocation = await locationManager.getCurrentPositionAsync();
             if (cLocation.mocked) {
-              showSnackBarView(true, MOCK_ERROR_MESSAGE, SnackBarType.FAILURE);
-              return;
+              throw new Error(MOCK_ERROR_MESSAGE);
             }
-            if (!checkLocation(cLocation, sessionState.getUserSession())) {
-              showSnackBarView(
-                true,
-                NOT_AT_OFFICE_LOCATION,
-                SnackBarType.FAILURE,
-              );
-              return;
+            if (
+              (await checkUserDistanceFromOffice(
+                cLocation,
+                sessionState.getUserSession(),
+              )) > 200
+            ) {
+              throw new Error(NOT_AT_OFFICE_LOCATION);
             }
             if (!checkTime()) {
-              showSnackBarView(
-                true,
-                'Cannot Punch in at this time!',
-                SnackBarType.FAILURE,
-              );
-              return;
+              throw new Error('Cannot Punch in at this time!');
             }
             const employeeData = (await cache.getObjectFromCache(
               CACHE_KEYS.USER_INFO,
@@ -88,7 +100,7 @@ const AttendanceScreen = () => {
               timestamp: new Date().valueOf(),
               employeeId: employeeData.employeeId,
               employeeName: employeeData.name,
-              userToken: '',
+              userToken: 'Test_token', //todo change this
               userLocation: {
                 latitude: cLocation.coords.latitude,
                 longitude: cLocation.coords.longitude,
@@ -101,11 +113,19 @@ const AttendanceScreen = () => {
           }}
         />
       </View>
-      <Surface
-        style={[CommonStyles.bottom, styles.surface, {backgroundColor: 'blue'}]}
-        elevation={4}>
-        <Text style={{color: 'white'}}>{new Date().toDateString()}</Text>
-      </Surface>
+      {distance !== -1 && (
+        <Surface
+          style={[
+            CommonStyles.bottom,
+            styles.surface,
+            {backgroundColor: 'blue'},
+          ]}
+          elevation={4}>
+          <Text style={{color: 'white', textAlign: 'center', padding: 10}}>
+            {`You are ${distance}m away from your office.Kindly mark attendance only in the office premises`}
+          </Text>
+        </Surface>
+      )}
       <SnackbarCustom
         visible={snackBar}
         message={snackMessage}

@@ -5,10 +5,10 @@ import {nativeUtils} from './ApplicationUtils';
 export function checkTime(): boolean {
   return true;
 }
-export async function checkLocation(
+export async function checkUserDistanceFromOffice(
   locObject: LocationObject,
   userObject: any,
-): Promise<boolean> {
+): Promise<number> {
   const employee: LoginResponse = userObject.user as LoginResponse;
   const distance = await nativeUtils.checkDistance(
     employee.officeCoordinates.latitude,
@@ -16,7 +16,6 @@ export async function checkLocation(
     locObject.coords.latitude,
     locObject.coords.longitude,
   );
-  console.log('dis'+distance);
-
-  return true;
+  console.log('distance is ', distance);
+  return distance;
 }

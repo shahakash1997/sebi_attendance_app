@@ -1,4 +1,4 @@
-package com.sebi_attendance.rnPackages
+package com.sebi_attendance
 
 
 object NativeSdkErrors {

@@ -1,4 +1,4 @@
-package com.sebi_attendance.rnPackages
+package com.sebi_attendance
 
 import android.content.Intent
 import android.location.Location
@@ -11,7 +11,7 @@ import com.facebook.react.bridge.ReactMethod
 import javax.annotation.Nonnull
 
 
-class SaAppUtils(mReactContext: ReactApplicationContext) :
+class SANativeModule(mReactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(mReactContext) {
 
     @Nonnull
@@ -81,31 +81,6 @@ class SaAppUtils(mReactContext: ReactApplicationContext) :
         } catch (error: Exception) {
             promise.reject(NativeSdkErrors.SYSTEM_TIME_ERROR, error.message)
         }
-    }
-
-    @ReactMethod
-    fun checkDistance(
-        baseLat: Double,
-        baseLong: Double,
-        userLat: Double,
-        userLong: Double,
-        promise: Promise
-    ) {
-        try {
-            val baseLocation = Location("OFFICE_LOCATION")
-            baseLocation.latitude = baseLat
-            baseLocation.longitude = baseLong
-
-            val userLocation = Location("EMPLOYEE_LOCATION")
-            userLocation.latitude = userLat
-            userLocation.longitude = userLong
-            val distance = baseLocation.distanceTo(userLocation)
-
-            promise.resolve(distance)
-        } catch (error: Exception) {
-            promise.reject(NativeSdkErrors.LOCATION_UTIL_ERROR, error.message)
-        }
-
     }
 
 }

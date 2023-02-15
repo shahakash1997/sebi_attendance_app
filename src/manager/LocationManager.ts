@@ -57,8 +57,3 @@ export default class LocationManager {
     await Location.startGeofencingAsync(GEOFENCE_TASK_NAME, locationRegions);
   }
 }
-
-export interface DLocation {
-  latitude: string;
-  longitude: string;
-}

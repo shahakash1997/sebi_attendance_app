@@ -10,6 +10,7 @@ export default class AttendanceService {
   }
 
   public async punchAttendance(requestBody: PunchInOutRequest) {
+    console.log(requestBody);
     const apiResponse = await this.networkClient.requestPost(
       '/attendance',
       requestBody,
@@ -30,6 +31,6 @@ export default class AttendanceService {
         endTime: endTime,
       },
     );
-    return apiResponse.data.data;
+    return apiResponse.data.data as PunchInOutRequest[];
   }
 }
