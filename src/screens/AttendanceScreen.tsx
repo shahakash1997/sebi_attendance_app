@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {useCallback, useEffect, useState} from 'react';
+import {useCallback, useState} from 'react';
 import {Divider, Surface, Text} from 'react-native-paper';
 import {StyleSheet, View} from 'react-native';
 import {CommonStyles} from '../styles/CommonStyles';
@@ -20,6 +20,7 @@ import {
 import {checkTime, checkUserDistanceFromOffice} from '../utils/attendanceUtils';
 import {useIsFocused} from '@react-navigation/native';
 import {useGlobalSessionState} from '../cache/AppState';
+import useCurrentDistance from '../manager/LocationCustomHook';
 
 const attendanceService = new AttendanceService();
 const cache = AppLocalStorage.getInstance();
@@ -33,7 +34,7 @@ const AttendanceScreen = () => {
   const [snackMessageType, setSnackMessageType] = useState<SnackBarType>(
     SnackBarType.SUCCESS,
   );
-  const [distance, setDistance] = useState(-1);
+  const distance = useCurrentDistance();
   const [mLoading, setLoading] = useState(false);
   const showSnackBarView = useCallback(
     (visible: boolean, message: string, type: SnackBarType) => {
@@ -43,21 +44,6 @@ const AttendanceScreen = () => {
     },
     [],
   );
-  useEffect(() => {
-    const timeFunction = setTimeout(async () => {
-      const cl = await locationManager.getCurrentPositionAsync();
-      const dt = await checkUserDistanceFromOffice(
-        cl,
-        sessionState.getUserSession(),
-      );
-      setDistance(Math.floor(dt));
-    }, 400);
-
-    return () => {
-      clearTimeout(timeFunction);
-    };
-  }, [distance, sessionState]);
-
   return (
     <View style={CommonStyles.mainContainer}>
       <ProgressDialog visible={mLoading} label={'Please wait'} />
@@ -122,7 +108,9 @@ const AttendanceScreen = () => {
           ]}
           elevation={4}>
           <Text style={{color: 'white', textAlign: 'center', padding: 10}}>
-            {`You are ${distance}m away from your office.Kindly mark attendance only in the office premises`}
+            {`You are ${JSON.stringify(
+              distance,
+            )}m away from your office.Kindly mark attendance only in the office premises`}
           </Text>
         </Surface>
       )}

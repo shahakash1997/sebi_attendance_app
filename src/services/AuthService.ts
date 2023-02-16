@@ -17,7 +17,7 @@ export default class AuthService {
   ): Promise<LoginResponse> {
     const loginRequestBody: LoginRequest = {
       employeeId: employeeId,
-      password: await encrypt(password),
+      password: password,
       deviceConfig: getDeviceInfo(),
     };
     const apiResponse = await this.networkClient.requestPost(

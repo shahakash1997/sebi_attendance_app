@@ -5,6 +5,7 @@ import {nativeUtils} from './ApplicationUtils';
 export function checkTime(): boolean {
   return true;
 }
+let timer = 0;
 export async function checkUserDistanceFromOffice(
   locObject: LocationObject,
   userObject: any,
@@ -16,6 +17,7 @@ export async function checkUserDistanceFromOffice(
     locObject.coords.latitude,
     locObject.coords.longitude,
   );
-  console.log('distance is ', distance);
+  timer++;
+  console.log('distance is ', distance +' '+timer);
   return distance;
 }

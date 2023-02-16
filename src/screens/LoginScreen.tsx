@@ -105,6 +105,7 @@ const LoginScreen = () => {
                 });
               }
             } catch (error: any) {
+              console.log(error?.response?.data?.error?.description);
               setSnackMessage(error?.response?.data?.error?.description);
               setSVisible(true);
               setLoading(false);

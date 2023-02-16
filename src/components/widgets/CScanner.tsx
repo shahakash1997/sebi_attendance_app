@@ -64,7 +64,7 @@ const CScanner = (props: CameraProps) => {
   if (!permission || !permission.granted) {
     return (
       <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-        <Title>
+        <Title style={{padding: 20}}>
           {
             'No Permissions for Camera. Please provide camera permissions from app\
             settings.'
@@ -87,6 +87,14 @@ const CScanner = (props: CameraProps) => {
           style={StyleSheet.absoluteFill}
         />
       )}
+      <FAB
+        size={'small'}
+        icon="orbit-variant"
+        style={styles.fab}
+        onPress={() => {
+          toggleCameraType();
+        }}
+      />
       <FAB
         size={'small'}
         icon="orbit-variant"

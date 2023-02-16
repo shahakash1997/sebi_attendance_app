@@ -1,4 +1,4 @@
-export const BASE_URL = 'http:192.168.108.220:3000/api';
+export const BASE_URL = 'http://15.207.85.66/api';
 export const GEOFENCE_TASK_NAME = 'GEOFENCE_TASK';
 export const MOCK_ERROR_MESSAGE =
   'Location is coming from Mocked Provider. This will be reported';
