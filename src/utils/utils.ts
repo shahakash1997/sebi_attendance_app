@@ -65,4 +65,21 @@ export async function timeDelay(time: number = 1000) {
   });
 }
 
+const weekday = [
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+];
+
+export function getWeekDayName(day: number) {
+  return weekday[day];
+}
+export function getCurrentDate(d: string) {
+  console.log('Date is',d);
+  return new Date(Date.parse(d)).toLocaleDateString().substring(0, 15);
+}
 //todo Add device Info and auth token etc

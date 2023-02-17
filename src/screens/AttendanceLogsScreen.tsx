@@ -11,30 +11,44 @@ import {
   Text,
   View,
 } from 'react-native';
-import {CommonStyles, Fonts} from '../styles/CommonStyles';
+import {Fonts} from '../styles/CommonStyles';
 import {useGlobalSessionState} from '../cache/AppState';
+import {getCurrentDate, getWeekDayName} from '../utils/utils';
+import {showToast} from '../components/widgets/Toaster';
 
 const attendanceService = new AttendanceService();
 const getAttendanceLogs = async (
-  employeeId: string,
+  employee: any,
 ): Promise<AttendanceLogItem[]> => {
-  const logs = await attendanceService.getAttendanceLogs(employeeId);
-  const mapLogs = new Map<string, PunchInOutRequest[]>();
-  for (const att of logs) {
-    const date = new Date(att.timestamp);
-    const key = date.toLocaleDateString();
-    if (mapLogs.has(key)) {
-      const list = mapLogs.get(key);
-      list?.push(att);
-    } else {
-      mapLogs.set(key, [att]);
+  try {
+    console.log('Attendance Logs called');
+    if (!employee) {
+      throw new Error('No Employee exists');
     }
+    const employeeData = employee as LoginResponse;
+    const logs = await attendanceService.getAttendanceLogs(
+      employeeData.employeeId,
+    );
+    const mapLogs = new Map<string, PunchInOutRequest[]>();
+    for (const att of logs) {
+      const date = new Date(att.timestamp);
+      const key = date.toLocaleDateString();
+      if (mapLogs.has(key)) {
+        const list = mapLogs.get(key);
+        list?.push(att);
+      } else {
+        mapLogs.set(key, [att]);
+      }
+    }
+    const arr: AttendanceLogItem[] = [];
+    mapLogs.forEach((value, key) => {
+      arr.push({title: key, data: value});
+    });
+    return arr;
+  } catch (error: any) {
+    console.log(error.message);
+    throw error;
   }
-  const arr: AttendanceLogItem[] = [];
-  mapLogs.forEach((value, key) => {
-    arr.push({title: key, data: value});
-  });
-  return arr;
 };
 
 interface AttendanceLogItem {
@@ -42,28 +56,57 @@ interface AttendanceLogItem {
   data: PunchInOutRequest[];
 }
 
+// @ts-ignore
+const sectionItem = ({section: {title}}) => (
+  <Surface style={[styles.surface, {backgroundColor: 'blue'}]} elevation={3}>
+    <Text
+      style={{
+        fontFamily: Fonts.IBMPlexSans_700Bold,
+        color: 'white',
+        padding: 8,
+      }}>
+      {`Date: ${getCurrentDate(title)}`}
+    </Text>
+  </Surface>
+);
+
+const listItem = ({item}: any) => (
+  <View style={styles.item}>
+    <Text style={styles.title}>
+      {getWeekDayName(new Date(item.timestamp).getDay())}
+    </Text>
+    <Text style={styles.title}>
+      {new Date(item.timestamp).toLocaleTimeString()}
+    </Text>
+    <Text style={styles.title}>{item.type}</Text>
+  </View>
+);
 const AttendanceLogsScreen = () => {
   const [attendanceLogs, setAttendanceLogs] = useState<AttendanceLogItem[]>([]);
   const sessionState = useGlobalSessionState();
   const [refreshing, setRefreshing] = React.useState(false);
 
   const onRefresh = React.useCallback(async () => {
-    setRefreshing(true);
-    // @ts-ignore
-    const employeeData = sessionState.getUserSession().user as LoginResponse;
-    const result = await getAttendanceLogs(employeeData.employeeId);
-    setAttendanceLogs(result);
-    setRefreshing(false);
+    try {
+      setRefreshing(true);
+      const employeeDetails = sessionState.getUserSession()?.user;
+      const result = await getAttendanceLogs(employeeDetails);
+      setAttendanceLogs(result);
+      setRefreshing(false);
+    } catch (error: any) {
+      setRefreshing(false);
+      showToast(`Error ${error.message}`);
+    }
   }, [sessionState]);
 
   useEffect(() => {
-    (async () => {
-      // @ts-ignore
-      const employeeData = sessionState.getUserSession().user as LoginResponse;
-      const result = await getAttendanceLogs(employeeData.employeeId);
-      setAttendanceLogs(result);
-    })();
-  }, [sessionState]);
+    console.log('Mounted!');
+    onRefresh().then().catch();
+    return () => {
+      console.log('Un-Mounted!');
+    };
+  }, []);
+
   return (
     <View style={{flex: 1, padding: 10}}>
       <SectionList
@@ -72,33 +115,8 @@ const AttendanceLogsScreen = () => {
         }
         sections={attendanceLogs}
         keyExtractor={(item, index) => (item.timestamp + index).toString()}
-        renderItem={({item}) => (
-          <View style={styles.item}>
-            <Text style={styles.title}>
-              {new Date(item.timestamp).toLocaleTimeString()}
-            </Text>
-            <Text style={styles.title}>{item.type}</Text>
-          </View>
-        )}
-        renderSectionHeader={({section: {title}}) => (
-          <Surface
-            style={[
-              CommonStyles.bottom,
-              styles.surface,
-              {backgroundColor: 'blue'},
-            ]}
-            elevation={4}>
-            <Text
-              style={{
-                fontFamily: Fonts.IBMPlexSans_700Bold,
-                color: 'white',
-                textAlign: 'center',
-                padding: 10,
-              }}>
-              {title}
-            </Text>
-          </Surface>
-        )}
+        renderItem={listItem}
+        renderSectionHeader={sectionItem}
       />
     </View>
   );
@@ -116,10 +134,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.IBMPlexSans_400Regular,
   },
   surface: {
-    padding: 8,
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
+    padding: 3,
   },
   container: {
     flex: 1,

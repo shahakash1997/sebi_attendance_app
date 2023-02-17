@@ -13,7 +13,7 @@ export default function useCurrentDistance() {
       locationSubscription = await Location.watchPositionAsync(
         {
           accuracy: Accuracy.Highest,
-          timeInterval: 5000, // in millis
+          timeInterval: 1000, // in millis
           distanceInterval: 1, //in metres
         },
         async location => {
@@ -32,6 +32,6 @@ export default function useCurrentDistance() {
         locationSubscription.remove;
       }
     };
-  }, [sessionState]);
+  }, []);
   return distance;
 }

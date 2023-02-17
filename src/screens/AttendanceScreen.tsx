@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {useCallback, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {Divider, Surface, Text} from 'react-native-paper';
 import {StyleSheet, View} from 'react-native';
 import {CommonStyles} from '../styles/CommonStyles';
@@ -44,6 +44,13 @@ const AttendanceScreen = () => {
     },
     [],
   );
+
+  useEffect(() => {
+    console.log('Mounting AS');
+    return () => {
+      console.log('Un-Mounting AS');
+    };
+  }, []);
   return (
     <View style={CommonStyles.mainContainer}>
       <ProgressDialog visible={mLoading} label={'Please wait'} />

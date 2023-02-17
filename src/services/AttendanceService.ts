@@ -23,6 +23,7 @@ export default class AttendanceService {
     startTime?: number,
     endTime?: number,
   ) {
+    console.log('CALLING API');
     const apiResponse = await this.networkClient.requestGet(
       '/attendance/logs',
       {
