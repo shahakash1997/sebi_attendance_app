@@ -27,10 +27,7 @@ const LoginScreen = () => {
   return (
     <View style={{flex: 1}}>
       <View style={[CommonStyles.mainContainer, {padding: 20}]}>
-        <Image
-          style={styles.tinyLogoHeader}
-          source={{uri: 'https://www.sebi.gov.in/images/logo.png'}}
-        />
+        <Image style={styles.tinyLogoHeader} source={require('./img.png')} />
         <TextInput
           maxLength={4}
           error={uError}
@@ -61,6 +58,7 @@ const LoginScreen = () => {
           }}
         />
         <Button
+          disabled={isLoading}
           style={styles.loginBtn}
           textColor={'black'}
           buttonColor={'rgb(33,243,206)'}
@@ -90,7 +88,6 @@ const LoginScreen = () => {
                 setUError(false);
                 setPError(false);
                 setSVisible(false);
-                // Calling Login API
                 setLoading(true);
                 const data = await authService.login(employeeId, password);
                 await AppLocalStorage.getInstance().setObjectInCache(
@@ -145,7 +142,8 @@ const styles = StyleSheet.create({
   },
   tinyLogoHeader: {
     marginBottom: 20,
-    height: 40,
+    resizeMode: 'contain',
+    width: '100%',
   },
   loginBtn: {
     borderRadius: 0,

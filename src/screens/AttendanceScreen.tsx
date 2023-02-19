@@ -62,49 +62,51 @@ const AttendanceScreen = () => {
         style={{backgroundColor: 'rgb(33,243,206)', padding: 2}}
       />
       <View style={{flex: 1}}>
-        <CScanner
-          cameraVisible={isFocused}
-          setLoading={setLoading}
-          showSnackBar={showSnackBarView}
-          onPunchIn={async image => {
-            console.log(image.length);
-            if (!sessionState.getUserSession()) {
-              throw new Error('No Employee found! Please wait');
-            }
-            const cLocation = await locationManager.getCurrentPositionAsync();
-            if (cLocation.mocked) {
-              throw new Error(MOCK_ERROR_MESSAGE);
-            }
-            if (
-              (await checkUserDistanceFromOffice(
-                cLocation,
-                sessionState.getUserSession(),
-              )) > 200
-            ) {
-              throw new Error(NOT_AT_OFFICE_LOCATION);
-            }
-            if (!checkTime()) {
-              throw new Error('Cannot Punch in at this time!');
-            }
-            const employeeData = (await cache.getObjectFromCache(
-              CACHE_KEYS.USER_INFO,
-            )) as LoginResponse;
-            await attendanceService.punchAttendance({
-              timestamp: new Date().valueOf(),
-              employeeId: employeeData.employeeId,
-              employeeName: employeeData.name,
-              userToken: 'Test_token', //todo change this
-              userLocation: {
-                latitude: cLocation.coords.latitude,
-                longitude: cLocation.coords.longitude,
-                timestamp: cLocation.timestamp,
-                accuracy: cLocation.coords.accuracy,
-              },
-              type: AttendanceType.PUNCH_IN,
-              deviceConfig: getDeviceInfo(),
-            });
-          }}
-        />
+        {isFocused && (
+          <CScanner
+            cameraVisible={isFocused}
+            setLoading={setLoading}
+            showSnackBar={showSnackBarView}
+            onPunchIn={async image => {
+              console.log(image.length);
+              if (!sessionState.getUserSession()) {
+                throw new Error('No Employee found! Please wait');
+              }
+              const cLocation = await locationManager.getCurrentPositionAsync();
+              if (cLocation.mocked) {
+                throw new Error(MOCK_ERROR_MESSAGE);
+              }
+              if (
+                (await checkUserDistanceFromOffice(
+                  cLocation,
+                  sessionState.getUserSession(),
+                )) > 200
+              ) {
+                throw new Error(NOT_AT_OFFICE_LOCATION);
+              }
+              if (!checkTime()) {
+                throw new Error('Cannot Punch in at this time!');
+              }
+              const employeeData = (await cache.getObjectFromCache(
+                CACHE_KEYS.USER_INFO,
+              )) as LoginResponse;
+              await attendanceService.punchAttendance({
+                timestamp: new Date().valueOf(),
+                employeeId: employeeData.employeeId,
+                employeeName: employeeData.name,
+                userToken: 'Test_token', //todo change this
+                userLocation: {
+                  latitude: cLocation.coords.latitude,
+                  longitude: cLocation.coords.longitude,
+                  timestamp: cLocation.timestamp,
+                  accuracy: cLocation.coords.accuracy,
+                },
+                type: AttendanceType.PUNCH_IN,
+                deviceConfig: getDeviceInfo(),
+              });
+            }}
+          />
+        )}
       </View>
       {distance !== -1 && (
         <Surface
